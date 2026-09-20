@@ -29,3 +29,11 @@
   height: 18px;
   stroke-width: 2.4;
 }
+
+/* ── Hero terminal ──────────────────────────────────────────────────────── */
+/* The hero prints real output, which can be long. Keep the fold clean: the
+   card scrolls instead of pushing the page down. */
+.split__aside .term__body {
+  max-height: 21rem;
+  overflow-y: auto;
+}
