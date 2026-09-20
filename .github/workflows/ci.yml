@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.x
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bunx tsc --noEmit
+
+      - name: Test
+        run: bun test
+
+      - name: Check install script syntax
+        run: sh -n install.sh
+
+      - name: Install script help
+        run: sh install.sh --help
+
+      - name: Build site, fail on bundle drift, and check site
+        run: bun run build:site && git diff --exit-code site/assets/studio.js && bun run check:site

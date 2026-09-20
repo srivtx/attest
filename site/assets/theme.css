@@ -1,0 +1,31 @@
+/* attest — per-tool accent for the Lens suite.
+   Only the accent changes here; everything else comes from lens.css. */
+:root {
+  --accent: #0284c7;
+  --accent-ink: #ffffff;
+}
+
+[data-theme="dark"] {
+  --accent: #38bdf8;
+  --accent-ink: #06121b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --accent: #38bdf8;
+    --accent-ink: #06121b;
+  }
+}
+
+/* ── Brand mark ─────────────────────────────────────────────────────────── */
+.brand__mark {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+}
+
+.brand__mark .icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.4;
+}

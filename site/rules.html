@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rules — attest</title>
+<meta name="description" content="Every issue code the attest C2PA verifier emits, with its severity and what to do about it, the four validation states, and what the hard binding is.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="Rules — attest">
+<meta property="og:description" content="Every issue code the attest C2PA verifier emits, its severity, the validation states, and the hard binding.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://srivtx.github.io/attest/rules.html">
+<meta property="og:image" content="https://srivtx.github.io/attest/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Rules — attest">
+<meta name="twitter:description" content="Every issue code the attest C2PA verifier emits, its severity, the validation states, and the hard binding.">
+<meta name="twitter:image" content="https://srivtx.github.io/attest/assets/og.png">
+<link rel="canonical" href="https://srivtx.github.io/attest/rules.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2032%2032'%3E%3Crect%20width%3D'32'%20height%3D'32'%20rx%3D'7'%20fill%3D'%230284c7'%2F%3E%3Cg%20transform%3D'translate(4%204)'%20fill%3D'none'%20stroke%3D'%23ffffff'%20stroke-width%3D'2.4'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Crect%20x%3D'2'%20y%3D'2'%20width%3D'20'%20height%3D'20'%20rx%3D'4'%2F%3E%3Cpath%20d%3D'M7%2012.5l3.2%203.2%206.8-7'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="assets/lens.css">
+<link rel="stylesheet" href="assets/theme.css">
+<script>
+(function () {
+  try {
+    var stored = window.localStorage.getItem("attest-theme");
+    if (stored === "dark" || stored === "light") {
+      document.documentElement.setAttribute("data-theme", stored);
+    }
+  } catch (err) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav" id="top">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html" aria-label="attest home">
+      <span class="brand__mark" aria-hidden="true">
+        <svg class="icon" viewBox="0 0 24 24" focusable="false"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M8 12.4l2.6 2.6 5.4-6"></path></svg>
+      </span>
+      <span class="brand__name">attest</span>
+      <span class="brand__tag">by svx</span>
+    </a>
+
+    <nav class="nav__links" id="site-nav" aria-label="Sections">
+      <a href="index.html#verify">Verifier</a>
+      <a href="rules.html">Rules</a>
+      <a href="usage.html">Usage</a>
+      <a href="ci.html">CI</a>
+      <a href="https://github.com/srivtx/attest">GitHub</a>
+    </nav>
+
+    <div class="nav__actions">
+      <button type="button" class="nav__toggle btn btn--ghost btn--sm" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      </button>
+      <button type="button" class="btn btn--ghost btn--sm" id="theme-toggle" aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <span id="theme-toggle-text">Theme</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="container">
+    <div class="docs">
+      <nav class="docs__nav" aria-label="Docs">
+        <h2>attest</h2>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="rules.html" aria-current="page">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <article class="docs__body">
+        <div class="docs__head">
+          <p class="eyebrow">Reference</p>
+          <h1>The rules</h1>
+          <p>Every check the engine runs produces an issue with a stable code and one of three severities: <code>error</code>, <code>warning</code>, or <code>info</code>. An <code>error</code> makes a manifest invalid; a <code>warning</code> is reported but tolerated unless it is the trust result and you asked for <code>--require-trusted</code>.</p>
+        </div>
+
+        <h2>Issue codes</h2>
+        <p>These are the codes this build emits. Their scope is a single manifest, and several can appear on one file.</p>
+        <div class="table-wrap">
+          <table>
+            <caption>Signature and signer checks.</caption>
+            <thead>
+              <tr><th scope="col">Code</th><th scope="col">Severity</th><th scope="col">What it means</th><th scope="col">What to do</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>claimSignature.validated</code></td><td><span class="chip chip--info">info</span></td><td>The COSE Sign1 claim signature validated against the signing certificate. The algorithm is named, for example <code>PS256</code>.</td><td>Nothing. It confirms the claim was signed by the holder of the certificate.</td></tr>
+              <tr><td><code>claimSignature.mismatch</code></td><td><span class="chip chip--error">error</span></td><td>The claim signature did not validate. The manifest was altered, or the signature is not from that certificate.</td><td>Treat the file as untrusted and do not rely on its provenance. The asset may still be otherwise fine.</td></tr>
+              <tr><td><code>signingCredential.missing</code></td><td><span class="chip chip--error">error</span></td><td>The COSE signature carries no <code>x5chain</code>, so there is no certificate to tie the claim to.</td><td>Cannot be trusted without a signer; escalate or reject.</td></tr>
+              <tr><td><code>signingCredential.invalid</code></td><td><span class="chip chip--error">error</span></td><td>A certificate's issuer signature did not validate, so the chain is broken.</td><td>Reject the chain. Provide the correct issuer or root via a trust list if you expect it.</td></tr>
+              <tr><td><code>signingCredential.untrusted</code></td><td><span class="chip chip--warning">warning</span></td><td>No certificate in the chain matched the trust list you supplied.</td><td>Add the signer's certificate or subject to the trust list, or treat the file as untrusted with <code>--require-trusted</code>.</td></tr>
+              <tr><td><code>signingCredential.trusted</code></td><td><span class="chip chip--info">info</span></td><td>A certificate in the chain matched the trust list; the anchor is named.</td><td>Nothing. The signer is one you vouched for.</td></tr>
+              <tr><td><code>signingCredential.expired</code></td><td><span class="chip chip--warning">warning</span></td><td>A certificate is outside its validity window — expired or not yet valid.</td><td>Check the clock and the certificate dates. A signature made inside the window is still cryptographically sound; it just cannot be validated now.</td></tr>
+              <tr><td><code>signingCredential.intermediate</code></td><td><span class="chip chip--info">info</span></td><td>The chain does not carry the issuer of the last certificate, so it cannot be anchored to a root on its own.</td><td>Supply the expected anchor with <code>--trust</code>; trust has to come from a trust list.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <caption>Assertion and hard-binding checks.</caption>
+            <thead>
+              <tr><th scope="col">Code</th><th scope="col">Severity</th><th scope="col">What it means</th><th scope="col">What to do</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>assertion.missing</code></td><td><span class="chip chip--error">error</span></td><td>The claim declares an assertion that is not present in the manifest.</td><td>Treat the manifest as damaged or stripped; reject.</td></tr>
+              <tr><td><code>assertion.hashedURI.mismatch</code></td><td><span class="chip chip--error">error</span></td><td>An assertion's bytes hash to something other than the hash the claim records for it.</td><td>Reject. An assertion was changed after the claim was signed.</td></tr>
+              <tr><td><code>assertion.undeclared</code></td><td><span class="chip chip--warning">warning</span></td><td>An assertion is present in the manifest but not declared in the claim.</td><td>Usually harmless, but it is not covered by the signature. Investigate an unexpected assertion.</td></tr>
+              <tr><td><code>hardBinding.matched</code></td><td><span class="chip chip--info">info</span></td><td>The asset bytes re-hash to the <code>c2pa.hash.data</code> value.</td><td>Nothing. The signed claim describes these exact bytes.</td></tr>
+              <tr><td><code>hardBinding.mismatch</code></td><td><span class="chip chip--error">error</span></td><td>The asset bytes do not match the hard binding. Something changed after signing.</td><td>Reject the file as edited. This is the tampering signal.</td></tr>
+              <tr><td><code>hardBinding.invalid</code></td><td><span class="chip chip--error">error</span></td><td>The <code>c2pa.hash.data</code> assertion did not decode, or carries no hash.</td><td>Reject; the binding cannot be evaluated.</td></tr>
+              <tr><td><code>hardBinding.unsupported</code></td><td><span class="chip chip--warning">warning</span></td><td>The manifest uses <code>c2pa.hash.boxes</code>, which this build does not evaluate.</td><td>Do not treat the binding as verified. Use a tool that implements BMFF fragment bindings.</td></tr>
+              <tr><td><code>hardBinding.missing</code></td><td><span class="chip chip--error">error</span></td><td>The manifest has no hard binding assertion at all.</td><td>Reject; nothing ties the claim to the asset bytes.</td></tr>
+              <tr><td><code>manifest.missing</code></td><td><span class="chip chip--warning">warning</span></td><td>No C2PA manifest store was found in the file. The asset state is <code>unsigned</code>.</td><td>Nothing to verify. If a manifest was expected, the file was stripped or is the wrong format.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Validation states</h2>
+        <p>The report and the exit code reduce to one state per file. The state is the worst result across every manifest in the store.</p>
+        <div class="deflist">
+          <div class="defrow">
+            <dt class="defrow__term"><code>valid</code></dt>
+            <dd class="defrow__def">A manifest store is present and every manifest has no error-severity issue: the signature verified, the assertions hashed correctly, and the hard binding matched. Exit code <code>0</code>. If <code>--require-trusted</code> is set and a trust list names the signer, the state stays <code>valid</code>.</dd>
+          </div>
+          <div class="defrow">
+            <dt class="defrow__term"><code>invalid</code></dt>
+            <dd class="defrow__def">At least one manifest produced an error: a bad signature, a broken chain, a failed assertion hash, a hard binding mismatch, or a missing binding. The file may still be authentic media, but its provenance manifest cannot be trusted. Exit code <code>1</code>.</dd>
+          </div>
+          <div class="defrow">
+            <dt class="defrow__term"><code>untrusted</code></dt>
+            <dd class="defrow__def">The signature and hard binding are fine and there are no errors, but no certificate in the chain matched the trust list, and <code>assertTrusted</code> was requested — the CLI's <code>--require-trusted</code>. Without that flag the same file reports <code>valid</code> and exits <code>0</code>. A trust list must be supplied for this state to be reachable: with no list, trust is <code>unknown</code> and never flips the state. Exit code <code>1</code> only with <code>--require-trusted</code>.</dd>
+          </div>
+          <div class="defrow">
+            <dt class="defrow__term"><code>unsigned</code></dt>
+            <dd class="defrow__def">No C2PA manifest store could be located: no JUMBF in a JPEG, PNG, or WebP, and no standalone JUMBF. The report says so plainly, and the exit code is <code>1</code>. It is not a judgment that the file is fake — only that it carries no provenance to check.</dd>
+          </div>
+        </div>
+
+        <h2>The hard binding</h2>
+        <div class="callout" role="note">
+          <p>Inside the manifest is a <code>c2pa.hash.data</code> assertion: a hash of the asset's bytes with the manifest region excluded, together with the exact byte ranges to exclude. That is the hard binding — it names the specific pixels the signed claim is about.</p>
+          <p>When attest verifies a file, it recomputes that hash over the bytes in front of it and compares. If even one byte outside the manifest region has changed, the hashes differ and the binding fails. This is why the tampered fixture reports <code>signature valid, hard binding mismatch</code>: the signature over the unchanged manifest is still genuine, but that manifest no longer describes the file it is attached to.</p>
+        </div>
+
+        <div class="docs__foot">
+          <a href="index.html">← Overview</a>
+          <a href="usage.html">Usage →</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 32 32" focusable="false">
+            <rect x="7" y="7" width="18" height="18" rx="5"></rect>
+            <path d="M11.5 16l3.2 3.2 6-7"></path>
+          </svg>
+        </span>
+        <div>
+          <p>attest</p>
+          <p class="muted">Offline C2PA verification.</p>
+        </div>
+      </div>
+
+      <nav aria-label="Documentation">
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Project">
+        <h2>Project</h2>
+        <ul>
+          <li><a href="https://github.com/srivtx/attest">Repository</a></li>
+          <li><a href="https://github.com/srivtx/attest/blob/main/LICENSE">MIT license</a></li>
+          <li><a href="https://github.com/srivtx/attest/issues">Issues</a></li>
+          <li><a href="https://srivtx.github.io/lenses">Lenses suite</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="footer__meta">
+      <p>by svx · MIT Licensed · © 2026.</p>
+      <a href="#top">Back to top</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+</body>
+</html>

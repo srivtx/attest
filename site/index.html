@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>attest — verify C2PA Content Credentials, offline</title>
+<meta name="description" content="attest verifies C2PA Content Credentials on signed media offline, in your browser or in CI. Signature, hard binding, and signer chain. No upload, no network, no account.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="attest — verify C2PA Content Credentials, offline">
+<meta property="og:description" content="Check the C2PA signature, the hard binding, and the signer chain offline. In your browser or in CI, with no upload.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://srivtx.github.io/attest">
+<meta property="og:image" content="https://srivtx.github.io/attest/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="attest — verify C2PA Content Credentials, offline">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="attest — verify C2PA Content Credentials, offline">
+<meta name="twitter:description" content="Check the C2PA signature, the hard binding, and the signer chain offline. In your browser or in CI, with no upload.">
+<meta name="twitter:image" content="https://srivtx.github.io/attest/assets/og.png">
+<link rel="canonical" href="https://srivtx.github.io/attest">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2032%2032'%3E%3Crect%20width%3D'32'%20height%3D'32'%20rx%3D'7'%20fill%3D'%230284c7'%2F%3E%3Cg%20transform%3D'translate(4%204)'%20fill%3D'none'%20stroke%3D'%23ffffff'%20stroke-width%3D'2.4'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Crect%20x%3D'2'%20y%3D'2'%20width%3D'20'%20height%3D'20'%20rx%3D'4'%2F%3E%3Cpath%20d%3D'M7%2012.5l3.2%203.2%206.8-7'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="assets/lens.css">
+<link rel="stylesheet" href="assets/theme.css">
+<script>
+(function () {
+  try {
+    var stored = window.localStorage.getItem("attest-theme");
+    if (stored === "dark" || stored === "light") {
+      document.documentElement.setAttribute("data-theme", stored);
+    }
+  } catch (err) {}
+  if (
+    "IntersectionObserver" in window &&
+    !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+  ) {
+    document.documentElement.classList.add("js");
+  }
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav" id="top">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html" aria-label="attest home">
+      <span class="brand__mark" aria-hidden="true">
+        <svg class="icon" viewBox="0 0 24 24" focusable="false"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M8 12.4l2.6 2.6 5.4-6"></path></svg>
+      </span>
+      <span class="brand__name">attest</span>
+      <span class="brand__tag">by svx</span>
+    </a>
+
+    <nav class="nav__links" id="site-nav" aria-label="Sections">
+      <a href="#verify">Verifier</a>
+      <a href="rules.html">Rules</a>
+      <a href="usage.html">Usage</a>
+      <a href="ci.html">CI</a>
+      <a href="https://github.com/srivtx/attest">GitHub</a>
+    </nav>
+
+    <div class="nav__actions">
+      <button type="button" class="nav__toggle btn btn--ghost btn--sm" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 7h16M4 12h16M4 17h16"></path>
+        </svg>
+      </button>
+      <button type="button" class="btn btn--ghost btn--sm" id="theme-toggle" aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+        </svg>
+        <span id="theme-toggle-text">Theme</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero__glow" aria-hidden="true"></div>
+    <div class="container">
+      <div class="split">
+        <div class="split__copy">
+          <p class="eyebrow reveal">Offline · no upload · CI-ready</p>
+          <h1 id="hero-title" class="reveal">Verify Content Credentials, offline.</h1>
+          <p class="hero__lede reveal">attest reads the C2PA manifest embedded in a signed image, validates the claim signature and the hard binding, and reports the signer chain, the recorded actions, and every issue it finds. It runs entirely on your machine: no upload, no account, no network call.</p>
+
+          <div class="btn-row reveal">
+            <a class="btn btn--primary" href="#verify">
+              Verify a file
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"></path></svg>
+            </a>
+            <a class="btn btn--outline" href="rules.html">Read the rules</a>
+          </div>
+
+          <div class="install reveal">
+            <code class="install__cmd">bunx github:srivtx/attest#main inspect photo.jpg</code>
+            <button type="button" class="btn btn--outline btn--sm" data-copy="bunx github:srivtx/attest#main inspect photo.jpg">Copy</button>
+          </div>
+          <p class="install__note reveal">attest is not on npm; <code>bunx github:srivtx/attest#main</code> runs the latest <code>main</code> with Bun. Install the <code>attest</code> binary with the one-line script, or add it as a dev dependency.</p>
+        </div>
+
+        <div class="split__aside reveal">
+          <div class="term" aria-label="Example attest inspect run">
+            <div class="term__bar">
+              <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="term__title">attest inspect</span>
+            </div>
+            <pre class="term__body term__body--wrap"><span class="ln"><span class="p">$ </span><span class="cmd">attest inspect fixtures/C2PA-signed.jpg --verbose</span></span><span class="ln"><span class="ok">VALID</span>  jpeg  132518 bytes</span><span class="ln"><span class="dim">sha256</span>  a2d14755db55de67a47c04090340d8266e892367be4104a45626d7a6fa6e9ffd</span><span class="ln"></span><span class="ln"><span class="b">manifest</span>  contentauth:urn:uuid:b2b1f7fa-b119-4de1-9c0d-c97fbea3f2c3</span><span class="ln">  title      C.jpg</span><span class="ln">  generator  make_test_images</span><span class="ln">  format     image/jpeg</span><span class="ln">  instance   xmp:iid:22704d84-c37f-4733-a207-56c4c2e67b1a</span><span class="ln">  signature  <span class="ok">valid</span> (PS256)</span><span class="ln">  trust      unknown — no trust list was supplied</span><span class="ln">  chain</span><span class="ln">    . C=US, ST=CA, L=Somewhere, O=C2PA Test Signing Cert, OU=FOR TESTING_ONLY, CN=C2PA Signer</span><span class="ln"><span class="dim">        2022-06-10T18:46:28.000Z to 2030-08-26T18:46:28.000Z  68e2ccccf0ee0529</span></span><span class="ln">    . C=US, ST=CA, L=Somewhere, O=C2PA Test Intermediate Root CA, OU=FOR TESTING_ONLY, CN=Intermediate CA  [CA]</span><span class="ln"><span class="dim">        2022-06-10T18:46:26.000Z to 2030-08-27T18:46:26.000Z  28f3833389548b0e</span></span><span class="ln">  actions</span><span class="ln">    c2pa.created  by Make Test Images 0.33.1</span><span class="ln">  hard binding  <span class="ok">matched</span> (sha256)</span><span class="ln">    computed  81664d10e30740d8942df03fb4ee470f66b03b060c037b677d43c0a48afd72c9</span><span class="ln">    asserted  81664d10e30740d8942df03fb4ee470f66b03b060c037b677d43c0a48afd72c9</span><span class="ln">  assertions    4</span><span class="ln">    c2pa.thumbnail.claim.jpeg  declared, present, hash ok</span><span class="ln">    stds.schema-org.CreativeWork  declared, present, hash ok</span><span class="ln">    c2pa.actions  declared, present, hash ok</span><span class="ln">    c2pa.hash.data  declared, present, hash ok</span><span class="ln"></span><span class="ln">0 error(s), 0 warning(s)</span><span class="ln">  <span class="info">INFO</span>  claimSignature.validated  Claim signature validated (PS256).</span><span class="ln">  <span class="info">INFO</span>  signingCredential.intermediate  The chain does not carry the issuer of C=US, ST=CA, L=Somewhere, O=C2PA Test Intermediate Root CA, OU=FOR TESTING_ONLY, CN=Intermediate CA; trust has to come from a trust list.</span><span class="ln">  <span class="info">INFO</span>  hardBinding.matched  Asset bytes match the hard binding (sha256).</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="compare" aria-labelledby="compare-title">
+    <div class="container">
+      <div class="band reveal">
+        <p class="band__label" id="compare-title">Valid vs tampered</p>
+        <div class="band__body">
+          <p class="band__lead">One changed byte separates a signed file from a forged one. The signature still validates, because the manifest is untouched — but the hard binding no longer matches the pixels.</p>
+          <div class="term" aria-label="attest verify, valid and tampered">
+            <div class="term__bar">
+              <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="term__title">attest verify</span>
+            </div>
+            <pre class="term__body term__body--wrap"><span class="ln"><span class="p">$ </span><span class="cmd">attest verify fixtures/C2PA-signed.jpg</span></span><span class="ln"><span class="ok">valid</span>: C.jpg — signature valid, hard binding matched</span><span class="ln"><span class="dim">exit 0</span></span><span class="ln"></span><span class="ln"><span class="p">$ </span><span class="cmd">attest verify tampered.jpg</span></span><span class="ln"><span class="err">invalid</span>: C.jpg — signature valid, hard binding mismatch</span><span class="ln"><span class="dim">exit 1</span></span></pre>
+          </div>
+          <p>The exit code is the gate: <code>0</code> means the file verified, <code>1</code> means it did not. In CI, that is the whole check.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="verify" aria-labelledby="verify-title">
+    <div class="container">
+      <div class="band reveal">
+        <p class="band__label" id="verify-title">Try it in your browser</p>
+        <div class="band__body">
+          <p class="band__lead">Choose a signed image and attest verifies it right here. The file is read with <code>File.arrayBuffer()</code> and never leaves this machine: there is no upload and no network request. You can watch the network tab.</p>
+
+          <div class="playground">
+            <div class="playground__head">
+              <p class="playground__hint">Runs entirely in your browser. Nothing is uploaded, and no request is made.</p>
+            </div>
+
+            <div class="playground__body">
+              <label class="dropzone" id="verify-drop" for="verify-file">
+                <span class="dropzone__icon" aria-hidden="true">
+                  <svg class="icon icon--lg" viewBox="0 0 24 24" focusable="false"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M8 12.4l2.6 2.6 5.4-6"></path></svg>
+                </span>
+                <p><strong>Choose a file or drop it here</strong></p>
+                <p class="muted">JPEG, PNG, WebP, or raw JUMBF</p>
+                <input class="file-input" id="verify-file" type="file" accept="image/jpeg,image/png,image/webp,.c2pa,.jumbf">
+              </label>
+            </div>
+
+            <div class="playground__actions">
+              <button type="button" class="btn btn--primary" id="verify-button">Verify</button>
+              <p id="verify-status" class="status" role="status" aria-live="polite">No file chosen.</p>
+            </div>
+
+            <div class="playground__results">
+              <div id="verify-error" class="callout" role="alert" hidden>
+                <p id="verify-error-text"></p>
+              </div>
+
+              <div id="verify-summary-wrap" hidden>
+                <div class="summary" id="verify-summary" aria-label="Validation result"></div>
+              </div>
+
+              <pre id="verify-output" class="code code--wrap" hidden><code id="verify-output-code"></code></pre>
+            </div>
+          </div>
+
+          <p class="muted">An unsigned file is not a failure of the tool: it means the file carries no Content Credentials at all, so its origin is unknown.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="what" aria-labelledby="what-title">
+    <div class="container">
+      <div class="band reveal">
+        <p class="band__label" id="what-title">What C2PA is</p>
+        <div class="band__body">
+          <p>C2PA — the Coalition for Content Provenance and Authenticity — is an open standard for attaching cryptographically signed provenance to media: who made it, with what tool, and what happened to it since. A signed file carries a manifest holding a signed claim plus assertions, such as the creating action, a thumbnail, and a hash of the asset itself. Content Credentials is the user-facing name for that provenance.</p>
+          <p>The manifest is written as JUMBF boxes, embedded in the file's own bytes: an APP11 segment in a JPEG, a <code>caBX</code> chunk in a PNG, or a <code>C2PA</code> chunk in a WebP. It can also stand alone as a raw JUMBF file.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="checks" aria-labelledby="checks-title">
+    <div class="container">
+      <div class="band reveal">
+        <p class="band__label" id="checks-title">What it checks</p>
+        <div class="band__body">
+          <p class="band__lead">attest re-derives each check from the bytes in front of it. Nothing is taken on trust from the file's own metadata.</p>
+          <dl class="defgrid">
+            <div>
+              <dt>The claim signature</dt>
+              <dd>The COSE Sign1 signature over the claim, verified against the signing certificate. PS256, ES256, RS256 family algorithms and the other COSE algorithms are handled.</dd>
+            </div>
+            <div>
+              <dt>The signer chain</dt>
+              <dd>Every certificate in the <code>x5chain</code>: its subject and issuer, its validity window, and the issuer signature of each link.</dd>
+            </div>
+            <div>
+              <dt>Trust</dt>
+              <dd>Whether any certificate in the chain is on the trust list you supply, as a SHA-256 fingerprint or an exact subject name.</dd>
+            </div>
+            <div>
+              <dt>Assertion hashes</dt>
+              <dd>Every assertion the claim declares must be present, and its SHA-256 must match the hash recorded in the claim.</dd>
+            </div>
+            <div>
+              <dt>The hard binding</dt>
+              <dd>The asset bytes are re-hashed with the manifest region excluded and compared to the <code>c2pa.hash.data</code> assertion. This is what detects editing after signing.</dd>
+            </div>
+            <div>
+              <dt>Actions and ingredients</dt>
+              <dd>The recorded actions, their software agents and timestamps, the digital source type, and any declared ingredients.</dd>
+            </div>
+          </dl>
+
+          <div class="callout" role="note">
+            <p><strong>Not checked.</strong> This build does not evaluate <code>c2pa.hash.boxes</code> (the BMFF fragment bindings) and reports them as unsupported. It does not perform OCSP or CRL revocation checks, and it does not fetch a remote manifest — a <code>remote_manifest</code> URL is reported, never requested. It is not a conformance implementation, and it makes no claim about whether the picture is truthful.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="offline" aria-labelledby="offline-title">
+    <div class="container">
+      <div class="band reveal">
+        <p class="band__label" id="offline-title">Why offline matters</p>
+        <div class="band__body">
+          <p>Verifying provenance is sensitive. The file you are checking is often the very thing you are not ready to publish, and sending it to a third-party service tells that service what you are looking at. attest reads the file and does the cryptography on the machine you are already on.</p>
+          <p>Offline also means it works where a network does not: an air-gapped newsroom machine, a locked-down build runner, a laptop on a plane. There is no API key to rotate, no rate limit, and no service that can disappear or change its answer underneath you.</p>
+          <p>The tool is deterministic: the same bytes produce the same report and the same exit code, today or in a year. That is what makes it usable as a gate. The only network call anywhere in this project is the one you type to install it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ci" aria-labelledby="ci-title">
+    <div class="container">
+      <div class="band reveal">
+        <p class="band__label" id="ci-title">In CI</p>
+        <div class="band__body">
+          <p class="band__lead">Point attest at your image directory and let the exit code fail the build when a file is invalid or signed by a signer you do not trust.</p>
+          <div class="term" aria-label="attest in CI">
+            <div class="term__bar">
+              <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="term__title">attest verify · CI</span>
+            </div>
+            <pre class="term__body term__body--wrap"><span class="ln"><span class="p">$ </span><span class="cmd">attest verify public/hero.jpg --require-trusted --trust ci/trust-list.json</span></span><span class="ln"><span class="dim"># exit 0 when the signature, the hard binding, and the trust list all agree</span></span><span class="ln"><span class="dim"># exit 1 when the file changed, the chain is broken, or the signer is not trusted</span></span></pre>
+          </div>
+          <p>There is a complete GitHub Actions workflow, including anchoring a card in a registry commit, on the <a href="ci.html">CI page</a>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="tools" aria-labelledby="tools-title">
+    <div class="container">
+      <div class="band reveal">
+        <p class="band__label" id="tools-title">Commands</p>
+        <div class="band__body">
+          <p class="band__lead">One binary, six commands. Everything the browser bundle does, the CLI does with the same engine.</p>
+          <dl class="defgrid">
+            <div>
+              <dt><code>inspect</code></dt>
+              <dd>Verify and print the full report: chain, actions, ingredients, assertions, and every issue.</dd>
+            </div>
+            <div>
+              <dt><code>verify</code></dt>
+              <dd>The same check with a one-line summary, for scripts and CI. The exit code is the answer.</dd>
+            </div>
+            <div>
+              <dt><code>card</code></dt>
+              <dd>Print a portable provenance card — the asset hash, state, signer, and actions — as JSON.</dd>
+            </div>
+            <div>
+              <dt><code>anchor</code></dt>
+              <dd>Append a card to a JSON Lines registry, so the state of a file is recorded in a commit.</dd>
+            </div>
+            <div>
+              <dt><code>resolve</code></dt>
+              <dd>Look up a card by SHA-256, or re-verify a file against the card already in the registry.</dd>
+            </div>
+            <div>
+              <dt><code>mcp</code></dt>
+              <dd>Run the Model Context Protocol server over stdio, exposing three provenance tools to an agent.</dd>
+            </div>
+          </dl>
+          <p>Every command, flag, exit code, and the browser API are in <a href="usage.html">Usage</a>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="docs" aria-labelledby="docs-title">
+    <div class="container">
+      <div class="band reveal">
+        <p class="band__label" id="docs-title">Documentation</p>
+        <div class="band__body">
+          <p class="band__lead">The landing page is the pitch. The details live on four short pages.</p>
+          <dl class="defgrid">
+            <div>
+              <dt><a href="rules.html">Rules</a></dt>
+              <dd>Every issue code the engine emits, the four validation states, and what the hard binding is.</dd>
+            </div>
+            <div>
+              <dt><a href="usage.html">Usage</a></dt>
+              <dd>The CLI commands and flags, exit codes, the MCP server, the JavaScript API, trust lists, and the registry.</dd>
+            </div>
+            <div>
+              <dt><a href="ci.html">CI</a></dt>
+              <dd>A copy-paste GitHub Actions workflow, anchoring cards, and the exit codes as a build gate.</dd>
+            </div>
+            <div>
+              <dt><a href="faq.html">FAQ</a></dt>
+              <dd>Scope, honest limits, the file types it reads, and what provenance can and cannot prove.</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 32 32" focusable="false">
+            <rect x="7" y="7" width="18" height="18" rx="5"></rect>
+            <path d="M11.5 16l3.2 3.2 6-7"></path>
+          </svg>
+        </span>
+        <div>
+          <p>attest</p>
+          <p class="muted">Offline C2PA verification.</p>
+        </div>
+      </div>
+
+      <nav aria-label="Documentation">
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Project">
+        <h2>Project</h2>
+        <ul>
+          <li><a href="https://github.com/srivtx/attest">Repository</a></li>
+          <li><a href="https://github.com/srivtx/attest/blob/main/LICENSE">MIT license</a></li>
+          <li><a href="https://github.com/srivtx/attest/issues">Issues</a></li>
+          <li><a href="https://srivtx.github.io/lenses">Lenses suite</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="footer__meta">
+      <p>by svx · MIT Licensed · © 2026.</p>
+      <a href="#top">Back to top</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/studio.js"></script>
+<script src="assets/rules.js" defer></script>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

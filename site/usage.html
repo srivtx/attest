@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usage — attest</title>
+<meta name="description" content="attest CLI commands and flags, exit codes, JSON output, the provenance card and JSON Lines registry, the MCP server, the JavaScript API, and the trust-list formats.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="Usage — attest">
+<meta property="og:description" content="attest commands, flags, exit codes, the registry, the MCP server, the JavaScript API, and trust lists.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://srivtx.github.io/attest/usage.html">
+<meta property="og:image" content="https://srivtx.github.io/attest/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Usage — attest">
+<meta name="twitter:description" content="attest commands, flags, exit codes, the registry, the MCP server, the JavaScript API, and trust lists.">
+<meta name="twitter:image" content="https://srivtx.github.io/attest/assets/og.png">
+<link rel="canonical" href="https://srivtx.github.io/attest/usage.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2032%2032'%3E%3Crect%20width%3D'32'%20height%3D'32'%20rx%3D'7'%20fill%3D'%230284c7'%2F%3E%3Cg%20transform%3D'translate(4%204)'%20fill%3D'none'%20stroke%3D'%23ffffff'%20stroke-width%3D'2.4'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Crect%20x%3D'2'%20y%3D'2'%20width%3D'20'%20height%3D'20'%20rx%3D'4'%2F%3E%3Cpath%20d%3D'M7%2012.5l3.2%203.2%206.8-7'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="assets/lens.css">
+<link rel="stylesheet" href="assets/theme.css">
+<script>
+(function () {
+  try {
+    var stored = window.localStorage.getItem("attest-theme");
+    if (stored === "dark" || stored === "light") {
+      document.documentElement.setAttribute("data-theme", stored);
+    }
+  } catch (err) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav" id="top">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html" aria-label="attest home">
+      <span class="brand__mark" aria-hidden="true">
+        <svg class="icon" viewBox="0 0 24 24" focusable="false"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M8 12.4l2.6 2.6 5.4-6"></path></svg>
+      </span>
+      <span class="brand__name">attest</span>
+      <span class="brand__tag">by svx</span>
+    </a>
+
+    <nav class="nav__links" id="site-nav" aria-label="Sections">
+      <a href="index.html#verify">Verifier</a>
+      <a href="rules.html">Rules</a>
+      <a href="usage.html">Usage</a>
+      <a href="ci.html">CI</a>
+      <a href="https://github.com/srivtx/attest">GitHub</a>
+    </nav>
+
+    <div class="nav__actions">
+      <button type="button" class="nav__toggle btn btn--ghost btn--sm" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      </button>
+      <button type="button" class="btn btn--ghost btn--sm" id="theme-toggle" aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <span id="theme-toggle-text">Theme</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="container">
+    <div class="docs">
+      <nav class="docs__nav" aria-label="Docs">
+        <h2>attest</h2>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html" aria-current="page">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <article class="docs__body">
+        <div class="docs__head">
+          <p class="eyebrow">Reference</p>
+          <h1>Usage</h1>
+          <p>The same engine runs from the command line, from TypeScript, from an MCP-capable agent, and in the browser. Every surface reads bytes and returns the same verification result.</p>
+        </div>
+
+        <h2>Install</h2>
+        <div class="term" aria-label="Install commands">
+          <div class="term__bar">
+            <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="term__title">install</span>
+          </div>
+          <pre class="term__body term__body--wrap"><span class="ln"><span class="dim"># one-line install (drops an `attest` binary on PATH)</span></span><span class="ln"><span class="p">$ </span><span class="cmd">curl -fsSL https://raw.githubusercontent.com/srivtx/attest/main/install.sh | sh</span></span><span class="ln"></span><span class="ln"><span class="dim"># run once, without installing</span></span><span class="ln"><span class="p">$ </span><span class="cmd">bunx github:srivtx/attest#main --help</span></span><span class="ln"></span><span class="ln"><span class="dim"># pin a branch, tag, or commit</span></span><span class="ln"><span class="p">$ </span><span class="cmd">curl -fsSL https://raw.githubusercontent.com/srivtx/attest/main/install.sh | sh -s v0.1.0</span></span><span class="ln"></span><span class="ln"><span class="dim"># add as a project dev dependency</span></span><span class="ln"><span class="p">$ </span><span class="cmd">bun add -d github:srivtx/attest</span></span></pre>
+        </div>
+        <p>attest is not published to npm, and it requires <a href="https://bun.sh">Bun</a>. The install script runs <code>bun add -g github:srivtx/attest#&lt;ref&gt;</code>; <code>bunx github:srivtx/attest#main</code> runs the latest <code>main</code> without installing anything.</p>
+
+        <h2>Commands</h2>
+        <div class="table-wrap">
+          <table>
+            <caption>Six commands. <code>check</code> is accepted as an alias for <code>inspect</code> and <code>verify</code>.</caption>
+            <thead>
+              <tr><th scope="col">Command</th><th scope="col">Description</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>attest inspect &lt;file&gt; [options]</code></td><td>Verify and print the full report: signature, chain, actions, ingredients, hard binding, and every issue.</td></tr>
+              <tr><td><code>attest verify &lt;file&gt; [options]</code></td><td>Verify and print a one summary line, unless <code>--verbose</code>. The exit code is the answer.</td></tr>
+              <tr><td><code>attest card &lt;file&gt;</code></td><td>Print a portable provenance card as JSON.</td></tr>
+              <tr><td><code>attest anchor &lt;file&gt; --registry &lt;path&gt;</code></td><td>Append a provenance card to a registry file.</td></tr>
+              <tr><td><code>attest resolve &lt;hash|file&gt; --registry &lt;path&gt;</code></td><td>Look up a card by SHA-256, or re-verify a file against the card already in the registry.</td></tr>
+              <tr><td><code>attest mcp</code></td><td>Run the MCP server over stdio.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Flags</h2>
+        <div class="table-wrap">
+          <table>
+            <caption>Every flag. A value flag takes the next argument — write <code>--trust file</code>, not <code>--trust=file</code>.</caption>
+            <thead>
+              <tr><th scope="col">Flag</th><th scope="col">Description</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>--trust &lt;file&gt;</code></td><td>A trust list: a C2PA trust list JSON document or a PEM certificate bundle.</td></tr>
+              <tr><td><code>--require-trusted</code></td><td>Treat an untrusted signer as a failure. Sets <code>assertTrusted</code>; it only bites when a trust list is supplied.</td></tr>
+              <tr><td><code>--json</code></td><td>Print a machine-readable JSON document to stdout.</td></tr>
+              <tr><td><code>--verbose</code>, <code>-v</code></td><td>Include per-assertion detail and certificate validity windows.</td></tr>
+              <tr><td><code>--quiet</code>, <code>-q</code></td><td>Suppress output; rely on the exit code.</td></tr>
+              <tr><td><code>--registry &lt;path&gt;</code></td><td>The registry file for <code>anchor</code> and <code>resolve</code>, in JSON Lines form.</td></tr>
+              <tr><td><code>-h</code>, <code>--help</code></td><td>Show the help text and exit.</td></tr>
+              <tr><td><code>--version</code></td><td>Print the version and exit.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>A full inspect</h2>
+        <p>Text output is line-oriented: a state header, the asset hash, then one block per manifest ending with the issue list. <code>--verbose</code> adds the chain windows, the computed and asserted hard-binding hashes, and every assertion with its declared, present, and hash result.</p>
+        <div class="term" aria-label="A full attest inspect">
+          <div class="term__bar">
+            <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="term__title">attest inspect</span>
+          </div>
+          <pre class="term__body term__body--wrap"><span class="ln"><span class="p">$ </span><span class="cmd">attest inspect fixtures/C2PA-signed.jpg --verbose</span></span><span class="ln"><span class="ok">VALID</span>  jpeg  132518 bytes</span><span class="ln"><span class="dim">sha256</span>  a2d14755db55de67a47c04090340d8266e892367be4104a45626d7a6fa6e9ffd</span><span class="ln"></span><span class="ln"><span class="b">manifest</span>  contentauth:urn:uuid:b2b1f7fa-b119-4de1-9c0d-c97fbea3f2c3</span><span class="ln">  title      C.jpg</span><span class="ln">  generator  make_test_images</span><span class="ln">  format     image/jpeg</span><span class="ln">  instance   xmp:iid:22704d84-c37f-4733-a207-56c4c2e67b1a</span><span class="ln">  signature  <span class="ok">valid</span> (PS256)</span><span class="ln">  trust      unknown — no trust list was supplied</span><span class="ln">  chain</span><span class="ln">    . C=US, ST=CA, L=Somewhere, O=C2PA Test Signing Cert, OU=FOR TESTING_ONLY, CN=C2PA Signer</span><span class="ln"><span class="dim">        2022-06-10T18:46:28.000Z to 2030-08-26T18:46:28.000Z  68e2ccccf0ee0529</span></span><span class="ln">    . C=US, ST=CA, L=Somewhere, O=C2PA Test Intermediate Root CA, OU=FOR TESTING_ONLY, CN=Intermediate CA  [CA]</span><span class="ln"><span class="dim">        2022-06-10T18:46:26.000Z to 2030-08-27T18:46:26.000Z  28f3833389548b0e</span></span><span class="ln">  actions</span><span class="ln">    c2pa.created  by Make Test Images 0.33.1</span><span class="ln">  hard binding  <span class="ok">matched</span> (sha256)</span><span class="ln">    computed  81664d10e30740d8942df03fb4ee470f66b03b060c037b677d43c0a48afd72c9</span><span class="ln">    asserted  81664d10e30740d8942df03fb4ee470f66b03b060c037b677d43c0a48afd72c9</span><span class="ln">  assertions    4</span><span class="ln">    c2pa.thumbnail.claim.jpeg  declared, present, hash ok</span><span class="ln">    stds.schema-org.CreativeWork  declared, present, hash ok</span><span class="ln">    c2pa.actions  declared, present, hash ok</span><span class="ln">    c2pa.hash.data  declared, present, hash ok</span><span class="ln"></span><span class="ln">0 error(s), 0 warning(s)</span><span class="ln">  <span class="info">INFO</span>  claimSignature.validated  Claim signature validated (PS256).</span><span class="ln">  <span class="info">INFO</span>  signingCredential.intermediate  The chain does not carry the issuer of C=US, ST=CA, L=Somewhere, O=C2PA Test Intermediate Root CA, OU=FOR TESTING_ONLY, CN=Intermediate CA; trust has to come from a trust list.</span><span class="ln">  <span class="info">INFO</span>  hardBinding.matched  Asset bytes match the hard binding (sha256).</span></pre>
+        </div>
+
+        <h2>Verify, valid and tampered</h2>
+        <p><code>verify</code> without <code>--verbose</code> prints a single line. Run against the signed fixture and against a tampered copy, the difference is the hard binding.</p>
+        <div class="term" aria-label="attest verify against two files">
+          <div class="term__bar">
+            <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="term__title">attest verify</span>
+          </div>
+          <pre class="term__body term__body--wrap"><span class="ln"><span class="p">$ </span><span class="cmd">attest verify fixtures/C2PA-signed.jpg</span></span><span class="ln"><span class="ok">valid</span>: C.jpg — signature valid, hard binding matched</span><span class="ln"><span class="dim">exit 0</span></span><span class="ln"></span><span class="ln"><span class="p">$ </span><span class="cmd">attest verify tampered.jpg</span></span><span class="ln"><span class="err">invalid</span>: C.jpg — signature valid, hard binding mismatch</span><span class="ln"><span class="dim">exit 1</span></span></pre>
+        </div>
+
+        <h2>Exit codes</h2>
+        <div class="table-wrap">
+          <table>
+            <caption>The exit code is the CI gate.</caption>
+            <thead>
+              <tr><th scope="col">Code</th><th scope="col">Meaning</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>0</code></td><td>Valid, or nothing to report. An <code>untrusted</code> signer also exits <code>0</code> unless <code>--require-trusted</code> is set.</td></tr>
+              <tr><td><code>1</code></td><td>Invalid, untrusted with <code>--require-trusted</code>, unsigned (no manifest), or a <code>resolve</code> mismatch.</td></tr>
+              <tr><td><code>2</code></td><td>Usage error: a missing argument, an unknown option or command, or <code>--registry</code> omitted where it is required.</td></tr>
+              <tr><td><code>3</code></td><td>I/O error: an input file could not be read, or a trust list could not be parsed.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>A file that cannot be read is never reported as clean: it exits non-zero, so a gate cannot pass on input the tool did not understand.</p>
+
+        <h2>Provenance cards and the registry</h2>
+        <p><code>card</code> prints a portable, self-describing record of one verification. <code>anchor</code> appends that card to a registry; <code>resolve</code> looks one up and re-verifies a file against it.</p>
+
+        <h3>The card format</h3>
+        <p>The version string is <code>attest/card/1</code>. A card records the asset SHA-256, size, and container, the state, the manifests, and when it was issued.</p>
+        <pre class="code"><code>{
+  "version": "attest/card/1",
+  "asset": {
+    "sha256": "a2d14755db55de67a47c04090340d8266e892367be4104a45626d7a6fa6e9ffd",
+    "size": 132518,
+    "container": "jpeg"
+  },
+  "state": "valid",
+  "manifests": [
+    {
+      "label": "contentauth:urn:uuid:b2b1f7fa-b119-4de1-9c0d-c97fbea3f2c3",
+      "title": "C.jpg",
+      "generator": "make_test_images",
+      "format": "image/jpeg",
+      "instanceId": "xmp:iid:22704d84-c37f-4733-a207-56c4c2e67b1a",
+      "signature": { "valid": true, "algorithm": "PS256" },
+      "trust": { "status": "unknown", "reason": "no trust list was supplied" },
+      "hardBinding": {
+        "status": "matched",
+        "algorithm": "sha256",
+        "excludedBytes": 45884,
+        "assertedHash": "81664d10e30740d8942df03fb4ee470f66b03b060c037b677d43c0a48afd72c9",
+        "computedHash": "81664d10e30740d8942df03fb4ee470f66b03b060c037b677d43c0a48afd72c9"
+      },
+      "actions": [
+        {
+          "action": "c2pa.created",
+          "softwareAgent": "Make Test Images 0.33.1",
+          "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/algorithmicMedia"
+        }
+      ],
+      "ingredients": [],
+      "chain": [
+        { "subject": "C=US, ST=CA, L=Somewhere, O=C2PA Test Signing Cert, OU=FOR TESTING_ONLY, CN=C2PA Signer", "fingerprint": "68e2ccccf0ee0529528e931abd0f68ec8077238da4e041d344d900498a2b953c" },
+        { "subject": "C=US, ST=CA, L=Somewhere, O=C2PA Test Intermediate Root CA, OU=FOR TESTING_ONLY, CN=Intermediate CA", "fingerprint": "28f3833389548b0eeb00b88823d019bd406b6a16d6c3fc0f66d59525b80df87e" }
+      ]
+    }
+  ],
+  "issuedAt": "2026-09-20T15:47:26.771Z"
+}</code></pre>
+        <p>An <code>anchor</code> also prints a card id: the SHA-256 of the canonical card with <code>issuedAt</code> left out, so the same verification always yields the same id.</p>
+
+        <h3>Anchor and resolve</h3>
+        <div class="term" aria-label="attest anchor and resolve">
+          <div class="term__bar">
+            <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="term__title">registry</span>
+          </div>
+          <pre class="term__body term__body--wrap"><span class="ln"><span class="p">$ </span><span class="cmd">attest anchor fixtures/C2PA-signed.jpg --registry registry.jsonl</span></span><span class="ln">anchored  972d8dfa1cdab3d79c510908dcfa6fb125fb8866d2f1740e0278fced118b6733</span><span class="ln">  valid: C.jpg — signature valid, hard binding matched</span><span class="ln">  registry.jsonl</span><span class="ln"></span><span class="ln"><span class="p">$ </span><span class="cmd">attest resolve fixtures/C2PA-signed.jpg --registry registry.jsonl</span></span><span class="ln"><span class="ok">anchored and unchanged</span></span><span class="ln">  sha256   a2d14755db55de67a47c04090340d8266e892367be4104a45626d7a6fa6e9ffd</span><span class="ln">  issued   2026-09-20T15:47:26.771Z</span><span class="ln"></span><span class="ln"><span class="p">$ </span><span class="cmd">attest resolve a2d14755db55de67a47c04090340d8266e892367be4104a45626d7a6fa6e9ffd --registry registry.jsonl</span></span><span class="ln">a2d14755db55de67a47c04090340d8266e892367be4104a45626d7a6fa6e9ffd</span><span class="ln">  state     valid</span><span class="ln">  issued    2026-09-20T15:47:26.771Z</span><span class="ln">  manifests 1</span><span class="ln"></span><span class="ln"><span class="p">$ </span><span class="cmd">attest resolve tampered.jpg --registry registry.jsonl</span></span><span class="ln"><span class="err">not anchored</span></span><span class="ln">  sha256   f8ea3283d09a3cc8adbca73b47d87b88e0a75767245949143e2633d6e3e5c35a</span></pre>
+        </div>
+        <p>The registry is JSON Lines: one card per line. Blank lines and lines that are not <code>attest/card/1</code> are skipped, so a registry can sit next to other data and survive hand edits.</p>
+
+        <h2>MCP server</h2>
+        <p><code>attest mcp</code> speaks the Model Context Protocol over stdio, so an agent can verify provenance without a shell. Each tool takes the file bytes as base64 in <code>data</code>. There is no network access from the server.</p>
+        <pre class="code"><code>{
+  "mcpServers": {
+    "attest": {
+      "command": "bunx",
+      "args": ["github:srivtx/attest#main", "mcp"]
+    }
+  }
+}</code></pre>
+        <div class="table-wrap">
+          <table>
+            <caption>The three MCP tools.</caption>
+            <thead>
+              <tr><th scope="col">Tool</th><th scope="col">Arguments</th><th scope="col">Returns</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>provenance_verify</code></td><td><code>data</code> (string, base64, required), <code>name</code> (string, optional)</td><td>A one-line summary followed by the text report.</td></tr>
+              <tr><td><code>provenance_inspect</code></td><td><code>data</code> (string, base64, required), <code>name</code> (string, optional)</td><td>The full verbose report, including every assertion.</td></tr>
+              <tr><td><code>provenance_card</code></td><td><code>data</code> (string, base64, required)</td><td>The <code>attest/card/1</code> card and the state, as JSON.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>JavaScript API</h2>
+        <p>The engine is exported from <code>src/index.ts</code> and is browser-safe: no <code>node:</code> imports, so the same code runs in Bun and in a page. The built browser bundle exposes the same names on the global <code>Attest</code>.</p>
+        <pre class="code"><code>import { verifyBytes, formatReport, formatJson, summarize, toCard } from "attest";
+
+const bytes = new Uint8Array(await file.arrayBuffer());
+const asset = await verifyBytes(bytes);
+
+console.log(summarize(asset));           // one line, e.g. the verify output
+console.log(formatReport(asset));        // the text report
+console.log(formatJson(asset, 2));       // the stable JSON document
+const card = toCard(asset);              // an attest/card/1 object</code></pre>
+        <p>Pass a trust list and ask for it to be enforced by handing <code>verifyBytes</code> the options directly.</p>
+        <pre class="code"><code>import { verifyBytes, parseTrustList } from "attest";
+
+const trustList = await parseTrustList(pemText, "roots.pem");
+const asset = await verifyBytes(bytes, { trustList, assertTrusted: true });</code></pre>
+        <p>In a page, the bundle is a classic script that defines <code>Attest</code>; the landing page verifier calls <code>Attest.verifyBytes</code>, <code>Attest.formatReport</code>, <code>Attest.summarize</code>, and <code>Attest.formatJson</code>. Also exported: <code>hashWithExclusions</code>, <code>sha256</code>, <code>locateManifest</code>, <code>parseManifestStore</code>, <code>parseTrustList</code>, <code>evaluateTrust</code>, <code>cardId</code>, <code>serializeCard</code>, <code>parseRegistry</code>, <code>resolveByHash</code>, and <code>matchCard</code>.</p>
+
+        <h2>Trust lists</h2>
+        <p>A trust list is a list of signers you have decided to accept. attest matches a chain link when its SHA-256 fingerprint equals the entry's <code>cert_sha256</code>, or when its subject name equals the entry's <code>subject</code> exactly. Any certificate in the chain may match.</p>
+        <p>Two formats are accepted. A JSON document may be a top-level array or an object with a <code>trusted_list</code> (also <code>trusted</code>, <code>allowed</code>, <code>entries</code>, or <code>certificates</code>) array of entries. Each entry may carry <code>cert_sha256</code> (aliases <code>certSha256</code>, <code>sha256</code>, <code>fingerprint</code>; colons are stripped) and/or <code>subject</code> (alias <code>subject_dn</code>); an <code>issuer</code> field is read but is not used for matching.</p>
+        <pre class="code"><code>{
+  "trusted_list": [
+    { "subject": "C=US, ST=CA, L=Somewhere, O=C2PA Test Signing Cert, OU=FOR TESTING_ONLY, CN=C2PA Signer" },
+    { "cert_sha256": "68e2ccccf0ee0529528e931abd0f68ec8077238da4e041d344d900498a2b953c" }
+  ]
+}</code></pre>
+        <p>The other format is a PEM bundle: every certificate in the file becomes an entry keyed by the SHA-256 of its DER, together with its subject and issuer.</p>
+        <div class="term" aria-label="Trust list examples">
+          <div class="term__bar">
+            <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="term__title">trust</span>
+          </div>
+          <pre class="term__body term__body--wrap"><span class="ln"><span class="dim"># a JSON trust list</span></span><span class="ln"><span class="p">$ </span><span class="cmd">attest verify photo.jpg --trust trust-list.json --require-trusted</span></span><span class="ln"></span><span class="ln"><span class="dim"># a bundle of PEM certificates</span></span><span class="ln"><span class="p">$ </span><span class="cmd">attest verify photo.jpg --trust roots.pem --require-trusted</span></span><span class="ln"></span><span class="ln"><span class="dim"># untrusted, with a list that does not name the signer</span></span><span class="ln"><span class="err">untrusted</span>: C.jpg — signature valid, hard binding matched</span><span class="ln"><span class="dim">exit 1</span></span></pre>
+        </div>
+        <p>With no trust list at all, the trust status is <code>unknown</code>, not <code>untrusted</code>. That means <code>--require-trusted</code> on its own does not fail a file whose signer you never vouched for; supply <code>--trust</code> to make the check meaningful.</p>
+
+        <div class="docs__foot">
+          <a href="rules.html">← Rules</a>
+          <a href="ci.html">CI →</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 32 32" focusable="false">
+            <rect x="7" y="7" width="18" height="18" rx="5"></rect>
+            <path d="M11.5 16l3.2 3.2 6-7"></path>
+          </svg>
+        </span>
+        <div>
+          <p>attest</p>
+          <p class="muted">Offline C2PA verification.</p>
+        </div>
+      </div>
+
+      <nav aria-label="Documentation">
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Project">
+        <h2>Project</h2>
+        <ul>
+          <li><a href="https://github.com/srivtx/attest">Repository</a></li>
+          <li><a href="https://github.com/srivtx/attest/blob/main/LICENSE">MIT license</a></li>
+          <li><a href="https://github.com/srivtx/attest/issues">Issues</a></li>
+          <li><a href="https://srivtx.github.io/lenses">Lenses suite</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="footer__meta">
+      <p>by svx · MIT Licensed · © 2026.</p>
+      <a href="#top">Back to top</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+</body>
+</html>

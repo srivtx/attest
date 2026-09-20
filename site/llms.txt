@@ -1,0 +1,18 @@
+# attest
+
+> Verify C2PA Content Credentials offline.
+
+attest is an offline verifier for C2PA Content Credentials. It reads the JUMBF manifest store out of a JPEG, PNG, or WebP file, decodes the CBOR claim, verifies the COSE_Sign1 signature against the x5chain certificate with WebCrypto, verifies every assertion hash, and verifies the `c2pa.hash.data` hard binding over the asset bytes. It also walks the certificate chain, evaluates an optional trust list, and emits stable validation codes.
+
+Everything runs on the machine that has the file. There is no upload, no account, no network call, and no telemetry. The same code runs in the browser, in the Bun CLI, and in an MCP server.
+
+## Docs
+- [Overview](https://srivtx.github.io/attest/): what is verified, in one page, with real output.
+- [Rules](https://srivtx.github.io/attest/rules): every validation code, its severity, and what to do about it.
+- [Usage](https://srivtx.github.io/attest/usage): the CLI, the MCP server, the JavaScript API, trust lists, and provenance cards.
+- [CI](https://srivtx.github.io/attest/ci): verify and anchor in a GitHub Actions workflow.
+- [FAQ](https://srivtx.github.io/attest/faq): scope, the honest limits, and the file formats supported.
+
+## Optional
+- [Source](https://github.com/srivtx/attest): TypeScript implementation, tests, and issue tracker.
+- [Install script](https://raw.githubusercontent.com/srivtx/attest/main/install.sh): one-line install of the `attest` binary.

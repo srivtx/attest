@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ — attest</title>
+<meta name="description" content="attest scope and honest limits: not an official C2PA implementation, no BMFF hash bindings, no revocation checks, no remote manifest fetch, no upload, and what provenance can and cannot prove.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="FAQ — attest">
+<meta property="og:description" content="Scope, honest limits, the file types attest reads, and what C2PA provenance can and cannot prove.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://srivtx.github.io/attest/faq.html">
+<meta property="og:image" content="https://srivtx.github.io/attest/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FAQ — attest">
+<meta name="twitter:description" content="Scope, honest limits, the file types attest reads, and what C2PA provenance can and cannot prove.">
+<meta name="twitter:image" content="https://srivtx.github.io/attest/assets/og.png">
+<link rel="canonical" href="https://srivtx.github.io/attest/faq.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2032%2032'%3E%3Crect%20width%3D'32'%20height%3D'32'%20rx%3D'7'%20fill%3D'%230284c7'%2F%3E%3Cg%20transform%3D'translate(4%204)'%20fill%3D'none'%20stroke%3D'%23ffffff'%20stroke-width%3D'2.4'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Crect%20x%3D'2'%20y%3D'2'%20width%3D'20'%20height%3D'20'%20rx%3D'4'%2F%3E%3Cpath%20d%3D'M7%2012.5l3.2%203.2%206.8-7'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="assets/lens.css">
+<link rel="stylesheet" href="assets/theme.css">
+<script>
+(function () {
+  try {
+    var stored = window.localStorage.getItem("attest-theme");
+    if (stored === "dark" || stored === "light") {
+      document.documentElement.setAttribute("data-theme", stored);
+    }
+  } catch (err) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav" id="top">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html" aria-label="attest home">
+      <span class="brand__mark" aria-hidden="true">
+        <svg class="icon" viewBox="0 0 24 24" focusable="false"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M8 12.4l2.6 2.6 5.4-6"></path></svg>
+      </span>
+      <span class="brand__name">attest</span>
+      <span class="brand__tag">by svx</span>
+    </a>
+
+    <nav class="nav__links" id="site-nav" aria-label="Sections">
+      <a href="index.html#verify">Verifier</a>
+      <a href="rules.html">Rules</a>
+      <a href="usage.html">Usage</a>
+      <a href="ci.html">CI</a>
+      <a href="https://github.com/srivtx/attest">GitHub</a>
+    </nav>
+
+    <div class="nav__actions">
+      <button type="button" class="nav__toggle btn btn--ghost btn--sm" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      </button>
+      <button type="button" class="btn btn--ghost btn--sm" id="theme-toggle" aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <span id="theme-toggle-text">Theme</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="container">
+    <div class="docs">
+      <nav class="docs__nav" aria-label="Docs">
+        <h2>attest</h2>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html" aria-current="page">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <article class="docs__body">
+        <div class="docs__head">
+          <p class="eyebrow">Reference</p>
+          <h1>FAQ</h1>
+          <p>Scope, limits, and where attest sits next to the C2PA standard and the other tools that read it.</p>
+        </div>
+
+        <h2>Questions</h2>
+        <div class="faq">
+          <details>
+            <summary>Is this an official C2PA implementation?</summary>
+            <div class="faq__body"><p>No. attest is an independent, from-scratch reader of the C2PA structures. It parses JUMBF, CBOR, COSE Sign1, and X.509 itself and verifies the parts listed on the <a href="rules.html">rules page</a>. It is not certified, not affiliated with the C2PA, and not a conformance implementation. Three gaps matter in practice: it does not evaluate <code>c2pa.hash.boxes</code> bindings (the BMFF fragment hashes used by video and some HEIF files), it does not check certificate revocation through OCSP or a CRL, and it does not fetch a remote manifest. Everything else it reports, it derived from the bytes on your disk.</p></div>
+          </details>
+          <details>
+            <summary>What does "untrusted" mean?</summary>
+            <div class="faq__body"><p>The signature and the hard binding are fine, but no certificate in the chain matched the trust list you supplied. It is a statement about your list, not about the file. With <code>--require-trusted</code> the file is then reported as <code>untrusted</code> and exits <code>1</code>; without that flag the same file reports <code>valid</code>. Trust is yours to define: attest does not ship a list of who is trustworthy. And if you supply no list at all, the status is <code>unknown</code> — not <code>untrusted</code> — so <code>--require-trusted</code> alone never fails a file.</p></div>
+          </details>
+          <details>
+            <summary>Does it upload anything?</summary>
+            <div class="faq__body"><p>No. There is no network call at runtime in the CLI, the library, the MCP server, or the browser bundle. The in-page verifier reads the file with <code>File.arrayBuffer()</code> and does the cryptography in the tab; you can watch the network panel and see nothing leave. The only network request in the whole project is the one you type to install it or to run it through <code>bunx</code>.</p></div>
+          </details>
+          <details>
+            <summary>Which file types can it read?</summary>
+            <div class="faq__body"><p>JPEG, PNG, and WebP, plus a standalone raw JUMBF file. For JPEG it walks the APP11 segments, for PNG the <code>caBX</code> chunk, and for WebP the <code>C2PA</code> chunk. Anything else, including MP4 and other ISOBMFF video containers, is reported as <code>unsigned</code> rather than parsed.</p></div>
+          </details>
+          <details>
+            <summary>What happens if the file is unsigned?</summary>
+            <div class="faq__body"><p>The state is <code>unsigned</code> and the exit code is <code>1</code>. The report says plainly that no Content Credentials were found. That is not the tool calling the file fake; it means there is no provenance to check, so its origin is unverified. If a file you expected to be signed comes back unsigned, it was stripped or it is the wrong format.</p></div>
+          </details>
+          <details>
+            <summary>Why is the hard binding important?</summary>
+            <div class="faq__body"><p>The signature covers the manifest, not the pixels. If a file only had a signed manifest, someone could swap in a different image and keep the signature. The hard binding closes that gap: it is a hash of the asset's bytes, with the manifest region excluded, and attest recomputes it on every run. Change one byte outside the manifest and the binding fails while the signature still validates. That is exactly what the tampered fixture shows: <code>signature valid, hard binding mismatch</code>.</p></div>
+          </details>
+          <details>
+            <summary>Does it prove the image is real?</summary>
+            <div class="faq__body"><p>No, and no provenance tool can. Verification answers a narrow, useful question: these bytes were signed by the holder of this key, that key chains to a certificate, and you trust that certificate. It does not establish that the scene is real, the caption is true, or the image was not generated. A trusted camera can sign a staged photo, and a genuine signature can cover synthetic content — the manifest even records an algorithmic source type when it does. Provenance is evidence about origin and integrity, not about truth.</p></div>
+          </details>
+          <details>
+            <summary>How is trust decided?</summary>
+            <div class="faq__body"><p>By the trust list you pass with <code>--trust</code>: a JSON document or a PEM bundle. An entry matches a chain link when its SHA-256 fingerprint equals the link's certificate hash, or its subject name equals the link's subject exactly. Any link in the chain may match, so listing a root is enough. There is no built-in list and no freshness check.</p></div>
+          </details>
+          <details>
+            <summary>Can it verify video?</summary>
+            <div class="faq__body"><p>Not meaningfully. attest locates manifests in JPEG, PNG, and WebP, and treats a manifest's <code>c2pa.hash.boxes</code> binding — used for BMFF and video fragments — as unsupported. It will report that the binding was not evaluated rather than claim a pass, but the result is not a video verification.</p></div>
+          </details>
+          <details>
+            <summary>Does it check whether a certificate was revoked?</summary>
+            <div class="faq__body"><p>No. There is no OCSP or CRL request, because that would mean a network call. A certificate the issuer has since revoked will still validate here. If revocation matters to you, combine attest with a revocation-aware source of the same chain.</p></div>
+          </details>
+          <details>
+            <summary>Does it fetch a remote manifest?</summary>
+            <div class="faq__body"><p>No. When a claim points at a <code>remote_manifest</code> URL, attest reports the URL but never requests it. The manifest it verifies is the one embedded in the file. A file whose only manifest lives at a URL is verified as far as the local bytes allow, and the remote location is surfaced for you to handle deliberately.</p></div>
+          </details>
+          <details>
+            <summary>Who is it for?</summary>
+            <div class="faq__body"><p>People who want a local, second opinion on signed media: a fact-checker or archivist who should not upload a sensitive file to a service, a newsroom or platform pipeline that wants a CI gate on provenance, a developer who wants to verify bytes inside a Bun process or a web page, or an agent that needs to check a file through MCP without a shell. It is deliberately small and readable, so it can also serve as a reference for how these structures fit together.</p></div>
+          </details>
+        </div>
+
+        <h2>Limitations</h2>
+        <div class="callout" role="note">
+          <h3>What attest is not</h3>
+          <p>attest is a local verifier of C2PA manifests, not an official implementation and not a truth machine. It does not evaluate BMFF box hash bindings, does not check revocation, does not fetch remote manifests, and ships no trust list. It cannot tell you whether an image is authentic in the journalistic sense of depicting a real scene. It also cannot sign or edit anything: it only reads. Everything beyond reading and reporting is deliberately out of scope.</p>
+        </div>
+
+        <div class="docs__foot">
+          <a href="ci.html">← CI</a>
+          <a href="index.html">Overview →</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 32 32" focusable="false">
+            <rect x="7" y="7" width="18" height="18" rx="5"></rect>
+            <path d="M11.5 16l3.2 3.2 6-7"></path>
+          </svg>
+        </span>
+        <div>
+          <p>attest</p>
+          <p class="muted">Offline C2PA verification.</p>
+        </div>
+      </div>
+
+      <nav aria-label="Documentation">
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Project">
+        <h2>Project</h2>
+        <ul>
+          <li><a href="https://github.com/srivtx/attest">Repository</a></li>
+          <li><a href="https://github.com/srivtx/attest/blob/main/LICENSE">MIT license</a></li>
+          <li><a href="https://github.com/srivtx/attest/issues">Issues</a></li>
+          <li><a href="https://srivtx.github.io/lenses">Lenses suite</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="footer__meta">
+      <p>by svx · MIT Licensed · © 2026.</p>
+      <a href="#top">Back to top</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+</body>
+</html>

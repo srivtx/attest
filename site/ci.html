@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI — attest</title>
+<meta name="description" content="Run attest in CI: a copy-paste GitHub Actions workflow that verifies images with --require-trusted, fails the build on a bad file, and anchors provenance cards in a registry commit.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="CI — attest">
+<meta property="og:description" content="Verify images with attest in GitHub Actions, fail on an invalid or untrusted signer, and anchor provenance cards in a registry commit.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://srivtx.github.io/attest/ci.html">
+<meta property="og:image" content="https://srivtx.github.io/attest/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CI — attest">
+<meta name="twitter:description" content="A GitHub Actions workflow that verifies images with attest and fails the build on an invalid or untrusted file.">
+<meta name="twitter:image" content="https://srivtx.github.io/attest/assets/og.png">
+<link rel="canonical" href="https://srivtx.github.io/attest/ci.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2032%2032'%3E%3Crect%20width%3D'32'%20height%3D'32'%20rx%3D'7'%20fill%3D'%230284c7'%2F%3E%3Cg%20transform%3D'translate(4%204)'%20fill%3D'none'%20stroke%3D'%23ffffff'%20stroke-width%3D'2.4'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Crect%20x%3D'2'%20y%3D'2'%20width%3D'20'%20height%3D'20'%20rx%3D'4'%2F%3E%3Cpath%20d%3D'M7%2012.5l3.2%203.2%206.8-7'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="assets/lens.css">
+<link rel="stylesheet" href="assets/theme.css">
+<script>
+(function () {
+  try {
+    var stored = window.localStorage.getItem("attest-theme");
+    if (stored === "dark" || stored === "light") {
+      document.documentElement.setAttribute("data-theme", stored);
+    }
+  } catch (err) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav" id="top">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html" aria-label="attest home">
+      <span class="brand__mark" aria-hidden="true">
+        <svg class="icon" viewBox="0 0 24 24" focusable="false"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M8 12.4l2.6 2.6 5.4-6"></path></svg>
+      </span>
+      <span class="brand__name">attest</span>
+      <span class="brand__tag">by svx</span>
+    </a>
+
+    <nav class="nav__links" id="site-nav" aria-label="Sections">
+      <a href="index.html#verify">Verifier</a>
+      <a href="rules.html">Rules</a>
+      <a href="usage.html">Usage</a>
+      <a href="ci.html">CI</a>
+      <a href="https://github.com/srivtx/attest">GitHub</a>
+    </nav>
+
+    <div class="nav__actions">
+      <button type="button" class="nav__toggle btn btn--ghost btn--sm" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      </button>
+      <button type="button" class="btn btn--ghost btn--sm" id="theme-toggle" aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <span id="theme-toggle-text">Theme</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="container">
+    <div class="docs">
+      <nav class="docs__nav" aria-label="Docs">
+        <h2>attest</h2>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html" aria-current="page">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <article class="docs__body">
+        <div class="docs__head">
+          <p class="eyebrow">Guide</p>
+          <h1>CI and code scanning</h1>
+          <p>attest is built to run in a pipeline: no network, a documented exit code, and the same deterministic result every time. The exit code is the gate.</p>
+        </div>
+
+        <h2>Add it to a workflow</h2>
+        <p>Install Bun, then verify the images. The single-file step is the gate; the loop extends it to a whole directory and still fails the job if any file does not verify.</p>
+        <pre class="code"><code>name: Content Credentials
+on: [push, pull_request]
+
+jobs:
+  attest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.x
+
+      - name: Verify the hero image
+        run: |
+          bunx github:srivtx/attest#main verify public/hero.jpg \
+            --require-trusted --trust ci/trust-list.json
+
+      - name: Verify every image
+        shell: bash
+        run: |
+          fail=0
+          shopt -s globstar nullglob
+          for file in public/**/*.jpg public/**/*.png public/**/*.webp; do
+            echo "attest verify $file"
+            bunx github:srivtx/attest#main verify "$file" \
+              --require-trusted --trust ci/trust-list.json || fail=1
+          done
+          exit "$fail"</code></pre>
+        <p>Pass <code>--trust</code> with <code>--require-trusted</code>: without a trust list the signer status is <code>unknown</code>, which does not fail. With the list, a file whose signer you did not vouch for exits <code>1</code> and stops the job.</p>
+
+        <h2>What a failure looks like</h2>
+        <div class="term" aria-label="A failing attest run">
+          <div class="term__bar">
+            <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="term__title">attest verify · CI</span>
+          </div>
+          <pre class="term__body term__body--wrap"><span class="ln"><span class="p">$ </span><span class="cmd">attest verify tampered.jpg --require-trusted --trust ci/trust-list.json</span></span><span class="ln"><span class="err">invalid</span>: C.jpg — signature valid, hard binding mismatch</span><span class="ln"><span class="dim">exit 1</span></span><span class="ln"></span><span class="ln"><span class="p">$ </span><span class="cmd">attest verify photo.jpg --require-trusted --trust ci/trust-list.json</span></span><span class="ln"><span class="warn">untrusted</span>: C.jpg — signature valid, hard binding matched</span><span class="ln"><span class="dim">exit 1</span></span></pre>
+        </div>
+        <p>The first file changed after it was signed. The second is intact, but its signer is not on the list, so the job treats it as untrusted.</p>
+
+        <h2>Exit codes in CI terms</h2>
+        <div class="table-wrap">
+          <table>
+            <caption>Every non-zero code fails the step.</caption>
+            <thead>
+              <tr><th scope="col">Code</th><th scope="col">CI meaning</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>0</code></td><td>Pass. The file verified, or there was nothing to report. An <code>untrusted</code> signer also passes without <code>--require-trusted</code>.</td></tr>
+              <tr><td><code>1</code></td><td>Fail. The file is invalid, unsigned, untrusted under <code>--require-trusted</code>, or did not match the registry card.</td></tr>
+              <tr><td><code>2</code></td><td>Fail. Usage error: a bad flag, an unknown command, or a missing <code>--registry</code>. A misconfigured gate fails loudly instead of passing.</td></tr>
+              <tr><td><code>3</code></td><td>Fail. I/O error: the image or the trust list could not be read.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Anchor a card in a registry commit</h2>
+        <p>Verification answers for the file in front of you. Anchoring records that answer in the repository, so a later change to the same path is detectable. On a push to the default branch, append a card for each image and commit the registry; the history of the registry is then the history of the assets' provenance.</p>
+        <pre class="code"><code>      - name: Anchor the cards
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          mkdir -p provenance
+          touch provenance/registry.jsonl
+          shopt -s globstar nullglob
+          for file in public/**/*.jpg public/**/*.png public/**/*.webp; do
+            bunx github:srivtx/attest#main anchor "$file" --registry provenance/registry.jsonl
+          done
+
+      - name: Commit the registry
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add provenance/registry.jsonl
+          git diff --staged --quiet || git commit -m "chore: anchor content credentials"
+          git push</code></pre>
+        <p>Each card records the asset SHA-256, the state, the active manifest, and the hard binding. Because the card id is derived without the issue timestamp, re-anchoring an unchanged file produces the same id.</p>
+        <p>To catch a swap after the fact, resolve the current file against the committed registry. A file that was replaced, re-encoded, or re-signed fails the comparison and exits <code>1</code>.</p>
+        <pre class="code"><code>      - name: Re-verify against the registry
+        run: |
+          bunx github:srivtx/attest#main resolve public/hero.jpg --registry provenance/registry.jsonl</code></pre>
+        <p>That step compares the live file to the card on disk: the SHA-256 and size, the active manifest id, the hard binding hash, and the signature state. Any difference is printed as a reason and the step fails.</p>
+
+        <div class="docs__foot">
+          <a href="usage.html">← Usage</a>
+          <a href="faq.html">FAQ →</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 32 32" focusable="false">
+            <rect x="7" y="7" width="18" height="18" rx="5"></rect>
+            <path d="M11.5 16l3.2 3.2 6-7"></path>
+          </svg>
+        </span>
+        <div>
+          <p>attest</p>
+          <p class="muted">Offline C2PA verification.</p>
+        </div>
+      </div>
+
+      <nav aria-label="Documentation">
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Project">
+        <h2>Project</h2>
+        <ul>
+          <li><a href="https://github.com/srivtx/attest">Repository</a></li>
+          <li><a href="https://github.com/srivtx/attest/blob/main/LICENSE">MIT license</a></li>
+          <li><a href="https://github.com/srivtx/attest/issues">Issues</a></li>
+          <li><a href="https://srivtx.github.io/lenses">Lenses suite</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="footer__meta">
+      <p>by svx · MIT Licensed · © 2026.</p>
+      <a href="#top">Back to top</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+</body>
+</html>

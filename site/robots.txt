@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://srivtx.github.io/attest/sitemap.xml

@@ -1,0 +1,9 @@
+node_modules/
+*.log
+.DS_Store
+
+.vercel/
+.vercel
+.env*
+
+# Keep fixtures/ tracked: the C2PA test images are the conformance corpus.
